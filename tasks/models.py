@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 from django.utils import timezone
 
@@ -9,6 +10,12 @@ class Task(models.Model):
         CANCELLED = 'cancelled', 'Cancelled'
         OVERDUE = 'overdue', 'Overdue'
     
+    class Priority(models.TextChoices):
+        LOW = 'low', 'Low'
+        MEDIUM = 'medium', 'Medium'
+        HIGH = 'high', 'High'
+        URGENT = 'urgent', 'Urgent'
+    
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(
@@ -16,7 +23,17 @@ class Task(models.Model):
         choices=TaskStatus.choices,
         default='pending'
     )
+    priority = models.CharField(
+        max_length=20,
+        choices=Priority.choices,
+        null=True,
+        blank=True,
+    )
+    tag = models.CharField(max_length=50, blank=True, null=True)  # e.g., 'work', 'personal',
+    notes = models.TextField(blank=True, null=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
     due_date = models.DateTimeField()
+    create_by = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -37,3 +54,12 @@ class Task(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class PromptResponse(models.Model):
+    text = models.TextField()
+    prompt_response = models.TextField(blank=True, null=True)
+    status = models.JSONField(default=dict)  # Store status of task creation
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"PromptResponse: {self.text[:50]}..."  # Display first 50 characters

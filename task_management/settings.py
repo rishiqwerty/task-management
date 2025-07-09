@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,8 +20,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7*_=cvzhmron73d1@t6*m+x(v77((bsz*@rcosv^_oq5d_wlv='
-
+SECRET_KEY = os.getenv('SECRET_KEY')
+GEMINI_API_KEY = os.getenv('GEMINI_API')
+OPEN_AI_API_KEY = os.getenv('OPENAI_API')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -40,11 +41,14 @@ INSTALLED_APPS = [
     'tasks',
     'rest_framework',
     'drf_spectacular',
+    'corsheaders',
+    'celery',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -103,6 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DATETIME_FORMAT': None,
 }
 
 # Internationalization
@@ -124,5 +129,14 @@ STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+USE_TZ  = True
+TIME_ZONE = 'Asia/Kolkata'
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
