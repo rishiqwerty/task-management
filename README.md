@@ -127,6 +127,15 @@ A "Create Tasks from Text" input is available at the top of the UI for users to 
 
 ---
 
+## Future Enhancements
+
+- **User Authentication & Profiles**: Add user accounts, login, and per-user task lists
+- **OAuth & Social Login**: Google, GitHub, etc.
+- **Push Notifications**: Email, SMS, or browser notifications for deadlines and reminders
+- **Recurring Tasks**: Support for tasks that repeat on a schedule
+- **Sub Tasks**: Create sub task of a main task
+- **Team Collaboration**: Assign tasks to multiple users, comments, and activity logs
+
 
 
 
