@@ -79,17 +79,39 @@ npm run dev
 ---
 
 ## AI Innovation Feature
-**Text-to-Task**: Users can describe a project or goal in natural language, and the backend (using OpenAI or Gemini(Currently set as OpenAI)) will generate a structured task list with priorities, tags, and due dates. 
-- **API Endpoint**: `POST /tasks/tasks/text_to_task_action/`
-- **Request Body**:
-  ```json
-  { "text": "I am planning to create an app to track expenses..." }
-  ```
-- **Frontend**: Use the "Create Tasks from Text" box at the top of the UI
-- **How it works**: The backend uses an AI model to parse the text and create multiple tasks, auto-assigning priorities and tags if not provided.
+
+**Text-to-Task** allows users to describe a project, goal, or task list in natural language. The backend service (powered by OpenAI/Gemini — currently using OpenAI) intelligently parses the text into structured, actionable tasks with auto-assigned:
+
+- **Titles**
+- **Descriptions**
+- **Due dates**
+- **Priorities** (inferred from text context)
+- **Tags** (classified based on content)
+
+📌 **API Endpoint:**
+```
+POST /tasks/tasks/text_to_task_action/
+```
+
+📌 **Request Body Example:**
+```json
+{
+  "text": "I'm planning to build an expense tracking app. First, set up the database by tomorrow. Then design the UI this week. Prepare a presentation by next Monday."
+}
+```
+
+📌 **How it works:**
+- The backend uses an AI model to:
+  - Parse the input text.
+  - Detect multiple distinct tasks.
+  - Assign inferred priorities and tags if unspecified.
+  - Set due dates based on detected time references (with automatic conversion to UTC).
+  - Create and save each task to the database.
+
+📌 **Frontend Integration:**
+A "Create Tasks from Text" input is available at the top of the UI for users to quickly describe their workload in natural language.
 
 ---
-
 
 ## Development
 - **Backend**: Django, DRF, Celery, Redis, Poetry
