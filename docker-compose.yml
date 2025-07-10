@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Django Backend
+  backend:
+    build: .
+    ports:
+      - "9000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./media:/app/media
+      - ./static:/app/static
+      - ./db.sqlite3:/app/db.sqlite3
+    depends_on:
+      - redis
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped
+
+  # Redis for Celery
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Celery Worker
+  celery:
+    build: .
+    command: >
+      sh -c "sleep 10 &&
+             python manage.py migrate &&
+             celery -A task_management worker --loglevel=info"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - backend
+    volumes:
+      - ./media:/app/media
+      - ./db.sqlite3:/app/db.sqlite3
+    restart: unless-stopped
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build: .
+    command: >
+      sh -c "sleep 15 &&
+             python manage.py migrate &&
+             celery -A task_management beat --loglevel=info"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - backend
+    volumes:
+      - ./media:/app/media
+      - ./celerybeat-schedule.db:/app/celerybeat-schedule.db
+      - ./db.sqlite3:/app/db.sqlite3
+    restart: unless-stopped
+
+volumes:
+  redis_data: 

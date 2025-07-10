@@ -22,6 +22,6 @@ def task_pre_save(sender, instance, **kwargs):
 @receiver(post_save, sender=Task)
 def task_post_save(sender, instance, created, **kwargs):
     if created:
-        if instance.priority == Task.Priority.MEDIUM:
+        if not instance.priority:
             transaction.on_commit(lambda: assign_task_priority.delay(instance.id))
         print(f"New task created: {instance.title} (ID: {instance.id})")

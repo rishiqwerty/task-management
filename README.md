@@ -1,43 +1,110 @@
-Backend Developer Assignment: The Engine for a Time-Aware Task API
-Project Vision
-Our goal is to create the backend service with python django for an intelligent task management application. This service will act as the "single source of truth" for any client application (web, mobile, etc.). You are responsible for building a robust, scalable, and secure REST API that handles all task management logic, including a key feature: automatically determining a task's status based on its deadline.
-Your mission is to deliver a production-quality API engine that is reliable, well-tested, and well-documented, with a genuinely intelligent feature at its core.
+# Task Management Platform
 
-Part 1: Core Features (The MVP)
-Your first task is to build the Minimum Viable Product based on the following user stories.
-User Story 1: Manual Task Management
-"As a user, I want to create, view, update, and delete my tasks so I can manage my workload. I also need to be able to mark a task as 'complete' at any time."
-User Story 2: Time-Aware Auto-Bucketing
-"As a user, I want the application to automatically categorize my tasks based on their deadlines, so I can instantly see what's urgent, what I've accomplished, and what I've missed."
-Tasks will automatically transition between three states, or "buckets":
-Upcoming: The deadline is in the future and the task is not yet complete.
-Completed: The task was manually marked as 'complete' by the user.
-Missed: The deadline has passed and the task was not completed.
+## Project Vision
+A robust, scalable, and intelligent task management backend (Django) and frontend (React) with real-time UI, AI-powered features, and easy deployment via Docker.
+
+---
+
+## Features
+- **Task CRUD**: Create, view, update, delete, and complete tasks
+- **Time-Aware Bucketing**: Tasks auto-categorized as Upcoming, Completed, or Missed
+- **Priority & Tags**: AI or user-assigned, with visual badges
+- **Real-Time UI**: Instant feedback, transitions, and polling
+- **AI Text-to-Task**: Generate tasks from natural language
+- **Responsive Frontend**: Modern, mobile-friendly React + MUI
+- **Dockerized**: One-command setup for backend, Celery, Redis
+
+---
+
+## Quick Start
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/rishiqwerty/task-management.git
+cd task_management
+```
+
+### 2. Backend Setup (Django)
+#### a. Environment Variables
+- Copy the example env file and edit as needed:
+  ```bash
+  cd task_management
+  cp env.example .env
+  # Edit .env with your secrets and config
+  ```
+
+#### b. Docker Compose (Recommended)
+```bash
+docker compose up --build
+```
+- Backend API: http://localhost:9000
+- API Docs: http://localhost:9000/api/schema/swagger-ui/
+
+#### c. Local Dev (Optional)
+- Install Poetry: https://python-poetry.org/docs/#installation
+- Install dependencies:
+  ```bash
+  poetry install
+  poetry run python manage.py migrate
+  poetry run python manage.py runserver
+  ```
+
+### 3. Frontend Setup (React)
+clone Frontend repo:
+- git clone https://github.com/rishiqwerty/task-management-frontend.git
+
+```bash
+cd ../task-management-frontend
+npm install
+npm run dev
+```
+- Frontend: http://localhost:5173
+
+---
+
+## Environment Variables (.env)
+- See `task_management/env.example` for all options
+- Lists (e.g. ALLOWED_HOSTS, CORS_ALLOWED_ORIGINS) are comma-separated
+- Example:
+  ```env
+  DEBUG=True
+  SECRET_KEY=your-secret-key
+  ALLOWED_HOSTS=localhost,127.0.0.1
+  CORS_ALLOWED_ORIGINS=http://localhost:5173
+  CELERY_BROKER_URL=redis://redis:6379/0
+  CELERY_RESULT_BACKEND=redis://redis:6379/0
+  OPENAI_API_KEY=sk-...
+  ```
+
+---
+
+## AI Innovation Feature
+**Text-to-Task**: Users can describe a project or goal in natural language, and the backend (using OpenAI or Gemini(Currently set as OpenAI)) will generate a structured task list with priorities, tags, and due dates. 
+- **API Endpoint**: `POST /tasks/tasks/text_to_task_action/`
+- **Request Body**:
+  ```json
+  { "text": "I am planning to create an app to track expenses..." }
+  ```
+- **Frontend**: Use the "Create Tasks from Text" box at the top of the UI
+- **How it works**: The backend uses an AI model to parse the text and create multiple tasks, auto-assigning priorities and tags if not provided.
+
+---
 
 
-User Story 3: A Dynamic & Intuitive UI
-"As a user, I want a clean, responsive, and real-time interface that provides immediate feedback on my actions and the status of my tasks without needing to refresh the page."
-The UI should clearly separate the task buckets (e.g., using tabs, columns, or collapsible sections).
-Users should receive instant visual feedback when a task's state changes (e.g., moving it to the 'Completed' bucket).
-The design should be minimal, modern, and fully responsive for both desktop and mobile devices.
+## Development
+- **Backend**: Django, DRF, Celery, Redis, Poetry
+- **Frontend**: React, MUI, Axios
+- **AI**: OpenAI or Gemini
+
+---
+
+## Troubleshooting
+- **Docker Compose**: Use `docker compose` (not `docker-compose`)
+- **Celery/Redis**: Ensure Redis is running and env vars use `redis://redis:6379/0` in docker and `redis://redis:6379/0` for local development
+- **Frontend CORS**: Add your frontend URL to `CORS_ALLOWED_ORIGINS` in `.env`
+
+---
 
 
-Part 2: The AI Innovation Challenge
-This is where you will demonstrate your ability to integrate modern AI capabilities into a practical application. Your challenge is to implement one significant, AI-powered feature that makes the task management experience smarter for the end-user.
-Requirement:
-Choose one of the following options. You must add a new section to your README.md titled "AI Innovation Feature," explaining which option you chose, why it's valuable, your technical implementation (including which AI model/service you used), and how to use the new feature via the API.
-Recommended Tooling: You can use any AI service you prefer. The OpenAI API (using a model like gpt-3.5-turbo) or the Hugging Face Inference API or Gemini 2.5 API are excellent choices for these tasks.
-
-Evaluation Criteria & Submission
-(The Evaluation and Submission sections remain the same, but now the "Innovation" criterion is explicitly about the quality and implementation of the chosen AI feature.)
-Evaluation will heavily weigh:
-The quality and correctness of your AI feature implementation.
-The clarity of your README.md in explaining your AI choice and its implementation.
-How well the new feature is integrated into the existing API structure.
 
 
-SETUP
-- Direnv
-- poetry
-- django
-- drf

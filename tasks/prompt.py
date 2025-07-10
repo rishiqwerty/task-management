@@ -38,6 +38,7 @@ def generate_task_from_text_prompt(text):
         - IMPORTANT: Convert all times to UTC.
         - Kolkata is UTC+5:30, so 23:55 in Kolkata is 18:25 UTC.
         - Apply this offset when converting any local time in the text to UTC.
+        - Make sure time is in this format 2023-10-01T00:00:00Z
     - Priority (Guess the priority based on the text, and use the one mentioned based on the following values: {', '.join(VALID_PRIORITIES)}. 
         If not mentioned and you cant guess, default to 'medium')
     - Tag (Guess the tags if not mentioned, if not default to 'general')

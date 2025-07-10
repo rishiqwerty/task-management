@@ -22,34 +22,45 @@ def reprioritize_tasks():
     This task fetches tasks that are pending or in progress and due within the next 7 days,
     generates a prompt for the Gemini API, and updates their priorities based on the response.
     """
-    relevant_tasks = Task.objects.filter(
-        status__in=[Task.TaskStatus.PENDING, Task.TaskStatus.IN_PROGRESS],
-        due_date__lte=timezone.now() + timedelta(days=7)
-    ).order_by('due_date')[:50]
-    prompt = generate_task_prioritization_prompt(relevant_tasks)
-    predictions = openai_api_call(prompt)
-    # predictions = gemini_api_call(prompt)
-    p=PromptResponse.objects.create(
-        text=prompt,
-        prompt_response=predictions
-    )
-    predictions = predictions.strip().splitlines()[1]
+    try:
+        relevant_tasks = Task.objects.filter(
+            status__in=[Task.TaskStatus.PENDING, Task.TaskStatus.IN_PROGRESS],
+            due_date__lte=timezone.now() + timedelta(days=7)
+        ).order_by('due_date')[:50]
+        prompt = generate_task_prioritization_prompt(relevant_tasks)
+        predictions = openai_api_call(prompt)
+        # predictions = gemini_api_call(prompt)
+        p=PromptResponse.objects.create(
+            text=prompt,
+            prompt_response=predictions
+        )
+        try:
+            predictions = json.loads(predictions)
+        except json.JSONDecodeError:
+            predictions = predictions.strip().splitlines()[1]
+            predictions = json.loads(predictions)
 
-    predictions = json.loads(predictions)
-    for task_id, prediction in predictions.items():
-        priority = prediction.get('priority', Task.Priority.MEDIUM)
-        tag = prediction.get('tag', 'general')
-        if priority not in VALID_PRIORITIES:
-            priority = Task.Priority.MEDIUM  # default fallback
-        t=Task.objects.get(id=task_id)
-        t.priority = priority
-        t.tag = tag
-        t.save()
-    p.status = {
-        'status': 'success',
-        'message': f"Reprioritized {len(predictions)} tasks successfully."
-    }
-    p.save()
+        for task_id, prediction in predictions.items():
+            priority = prediction.get('priority', Task.Priority.MEDIUM)
+            tag = prediction.get('tag', 'general')
+            if priority not in VALID_PRIORITIES:
+                priority = Task.Priority.MEDIUM  # default fallback
+            t=Task.objects.get(id=task_id)
+            t.priority = priority
+            t.tag = tag
+            t.save()
+        p.status = {
+            'status': 'success',
+            'message': f"Reprioritized {len(predictions)} tasks successfully."
+        }
+        p.save()
+    except Exception as e:
+        p.status = {
+            'status': 'error',
+            'message': f"Error reprioritizing tasks: {str(e)}"
+        }
+        p.save()
+        print(f"Error reprioritizing tasks: {e}")
 
 
 @shared_task
@@ -76,11 +87,21 @@ def assign_task_priority(task_id):
                     Important: Return a valid JSON object. 
                     Keys must be enclosed in double quotes. 
                     Values must be enclosed in double quotes (if strings) or valid JSON numbers. 
+                    Do not add extra spaces or new lines in the JSON object.
                     Do not wrap your response in code block markers.
                     """+ '{1: {"priority":"pending", "tag": "Work"}'
         # predictions = gemini_api_call(prompt).strip().splitlines()[1]
-        predictions = openai_api_call(prompt).strip().splitlines()[1]
-        predictions = json.loads(predictions)
+        response = openai_api_call(prompt)
+        p = PromptResponse.objects.create(
+            text=prompt,
+            prompt_response=response
+        )
+        status = {'task': "Creating task from text", 'status': 'in_progress'}
+        try:
+            predictions = json.loads(response)
+        except json.JSONDecodeError:
+            predictions = response.strip().splitlines()[1]
+            predictions = json.loads(predictions)
         for task_id, prediction in predictions.items():
             priority = prediction.get('priority', Task.Priority.MEDIUM)
             tag = prediction.get('tag', 'general')
@@ -90,9 +111,18 @@ def assign_task_priority(task_id):
             t.priority = priority
             t.tag = tag
             t.save()
+        status['status'] = {
+            'status': 'success',
+            'message': f"Reprioritized tasks successfully."
+        }
+        p.save()
         print(f"Task ID {task_id} priority assigned successfully: {priority}, tag: {tag}")
     except Exception as e:
+        status['error'] = str(e)
         print(f"Error assigning priority for task ID {task_id}: {e}")
+    finally:
+        p.status = status
+        p.save()
 
 @shared_task
 def generate_task_from_text(text):
@@ -107,7 +137,10 @@ def generate_task_from_text(text):
         text=prompt,
         prompt_response=response
     )
-    status = {'task': "Creating task from text", 'status': 'in_progress'}
+    status = {
+        'task': "Creating task from text",
+        'status': "in_progress"
+    }
     try:
         try:
             task_data = json.loads(response)
@@ -125,7 +158,11 @@ def generate_task_from_text(text):
                 tag=task.get('tag', 'general'),
                 create_by='prompt'
             )
-        return f"Task '{t.title}' created successfully with ID {t.id}."
+        status['status'] = {
+            'status': 'success',
+            'message': f"Task created successfully."
+        }
+        return f"Task created successfully."
     except json.JSONDecodeError as e:
         status['error'] = str(e)
         return f"Error generating task from text: {e}"
