@@ -3,12 +3,14 @@
 ## Project Vision
 A robust, scalable, and intelligent task management backend (Django) and frontend (React) with real-time UI, AI-powered features, and easy deployment via Docker.
 
+UI can be accessed at - https://task-management-frontend-rishiqwertys-projects.vercel.app/
+
 ---
 
 ## Features
 - **Task CRUD**: Create, view, update, delete, and complete tasks
 - **Time-Aware Bucketing**: Tasks auto-categorized as Upcoming, Completed, or Missed
-- **Priority & Tags**: AI or user-assigned, with visual badges
+- **Priority & Tags**: AI or user-assigned, with visual badges for priority
 - **Real-Time UI**: Instant feedback, transitions, and polling
 - **AI Text-to-Task**: Generate tasks from natural language
 - **Responsive Frontend**: Modern, mobile-friendly React + MUI
@@ -48,6 +50,28 @@ docker compose up --build
   poetry run python manage.py migrate
   poetry run python manage.py runserver
   ```
+#### d. Cloud Deployment
+- Code is deployed at EC 2 instance via ECS
+- Create docker image using docker build
+```
+  docker build --platform linux/amd64 -t task-management-app .
+```
+- Tag and push the image to aws ecr (Note: Make sure youre already loggedin to aws via docker)
+```
+  docker tag task-management-app:latest xxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/task-management-app:latest
+  docker push xxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/task-management-app:latest
+```
+- Now once pushed, create ECS cluster and corresponding EC2 instance in same region from console
+- Create task definition and provide the image uri which we pushed to ECR and also update the env variables here.
+- Once done, start a new task in cluster, once started API server will be up.
+(Note: We need to make sure EC2 instance and cluster are in same vpc and security group, also proper ports need to be enabled)
+- Similarly use the same image and create tasks for celery and celery beats, just make sure to override the default docker container command which is to start django server.
+```
+celery -A task_management worker -l info # For celery
+```
+- Once all three are up we can access the server at instance ip
+
+Temporary Patch for https: To make server accessible at https for vercel, i have setup cloudflared tunnel.
 
 ### 3. Frontend Setup (React)
 clone Frontend repo:
@@ -74,6 +98,13 @@ npm run dev
   CELERY_BROKER_URL=redis://redis:6379/0
   CELERY_RESULT_BACKEND=redis://redis:6379/0
   OPENAI_API_KEY=sk-...
+  DB_HOST=localhost
+  DB_NAME=tempdb
+  DB_PASSWORD=tempapss
+  DB_PORT=5432
+  DB_USER=user
+  DB_ENGINE=django.db.backends.postgresql
+
   ```
 
 ---
