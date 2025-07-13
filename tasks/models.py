@@ -57,6 +57,7 @@ class Task(models.Model):
 
 class PromptResponse(models.Model):
     text = models.TextField()
+    # task_id = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='prompt_responses', null=True, blank=True)
     prompt_response = models.TextField(blank=True, null=True)
     status = models.JSONField(default=dict)  # Store status of task creation
     created_at = models.DateTimeField(auto_now_add=True)
