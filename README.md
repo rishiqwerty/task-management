@@ -3,8 +3,9 @@
 ## Project Vision
 A robust, scalable, and intelligent task management backend (Django) and frontend (React) with real-time UI, AI-powered features, and easy deployment via Docker.
 
-UI can be accessed at - https://task-management-frontend-rishiqwertys-projects.vercel.app/
-‼️ Backend Service is down, as it is deployed on EC2, will bring it up once moved to serverless. 
+UI can be accessed at - https://task-management-frontend-rishiqwertys-projects.vercel.app/  
+**‼️ Backend Service is down, as it is deployed on EC2, will bring it up once moved to serverless.**
+
 ---
 
 ## Features
